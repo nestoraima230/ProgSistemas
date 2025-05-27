@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisis Semantico</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .sidebar {
+            width: 250px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 5px;
+        }
+        
+        .sidebar h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        
+        .schema-line {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .table-name {
+            font-weight: bold;
+            color: #2980b9;
+        }
+        
+        .main-content {
+            flex: 1;
+        }
+        
+        .query-section {
+            margin-bottom: 20px;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+            resize: vertical;
+        }
+        
+        .buttons {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 8px 15px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        button.secondary {
+            background: #95a5a6;
+        }
+        
+        button.secondary:hover {
+            background: #7f8c8d;
+        }
+        
+        .results {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .results-header {
+            padding: 10px;
+            background: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+            font-weight: bold;
+        }
+        
+        .results-content {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #ecf0f1;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .error {
+            padding: 15px;
+            background-color: #fdecea;
+            color: #c62828;
+            border-left: 4px solid #c62828;
+        }
+        
+        .status {
+            margin-top: 5px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Semántico DML</h1>
+    
+    <div class="container">
+        <div class="sidebar">
+            <h3>Esquema de Base de Datos</h3>
+            <div class="schema-line"><span class="table-name">DEPARTAMENTOS:</span> D, DNOMBRE</div>
+            <div class="schema-line"><span class="table-name">CARRERAS:</span> C, CNOMBRE, VIGENCIA, SEMESTRES, D</div>
+            <div class="schema-line"><span class="table-name">ALUMNOS:</span> A, ANOMBRE, GENERACION, SEXO, C</div>
+            <div class="schema-line"><span class="table-name">MATERIAS:</span> M, MNOMBRE, CREDITOS, C</div>
+            <div class="schema-line"><span class="table-name">PROFESORES:</span> P, PNOMBRE, EDAD, SEXO, ESP, GRADO, D</div>
+            <div class="schema-line"><span class="table-name">INSCRITOS:</span> R, A, M, P, TURNO, SEMESTRE, CALIFICACION</div>
+        </div>
+        
+        <div class="main-content">
+            <div class="query-section">
+                <textarea 
+                    id="query-input" 
+                    placeholder="Escribe tu consulta SQL aquí. Ejemplo: SELECT * FROM ALUMNOS;"
+                    spellcheck="false"
+                ></textarea>
+                <div class="buttons">
+                    <button onclick="clearQuery()" class="secondary">Limpiar</button>
+                    <button onclick="executeQuery()" id="run-btn">Ejecutar</button>
+                </div>
+                <div class="status" id="status">Listo</div>
+            </div>
+            
+            <div id="results-container" style="display: none;">
+                <div class="results">
+                    <div class="results-header" id="results-header">
+                        Resultados
+                    </div>
+                    <div class="results-content" id="results-content">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isExecuting = false;
+
+        function clearQuery() {
+            document.getElementById('query-input').value = '';
+            hideResults();
+            setStatus('Listo');
+        }
+
+        function hideResults() {
+            document.getElementById('results-container').style.display = 'none';
+        }
+
+        function showResults() {
+            document.getElementById('results-container').style.display = 'block';
+        }
+
+        function setStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+
+        function setExecuting(executing) {
+            isExecuting = executing;
+            const btn = document.getElementById('run-btn');
+            
+            if (executing) {
+                btn.disabled = true;
+                btn.textContent = 'Ejecutando...';
+                setStatus('Ejecutando consulta...');
+            } else {
+                btn.disabled = false;
+                btn.textContent = 'Ejecutar';
+            }
+        }
+
+        async function executeQuery() {
+            if (isExecuting) return;
+
+            const query = document.getElementById('query-input').value.trim();
+            if (!query) {
+                showError('No se proporcionó ninguna consulta');
+                return;
+            }
+
+            setExecuting(true);
+            hideResults();
+
+            try {
+                const response = await fetch(`http://localhost:3000/query?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    displayResults(data);
+                    setStatus(`Consulta ejecutada correctamente - ${data.length} registros`);
+                } else {
+                    showError(data.error || 'Error en la consulta');
+                }
+            } catch (err) {
+                showError('Error de conexión - Verifica que el servidor esté ejecutándose en localhost:3000');
+            } finally {
+                setExecuting(false);
+            }
+        }
+
+        function showError(message) {
+            const container = document.getElementById('results-content');
+            container.innerHTML = `
+                <div class="error">
+                    <div><strong>Error:</strong> ${message}</div>
+                </div>
+            `;
+            
+            document.getElementById('results-header').textContent = 'Error';
+            showResults();
+            setStatus('Error');
+        }
+
+        function displayResults(data) {
+            if (!data || data.length === 0) {
+                showError('No se obtuvieron resultados');
+                return;
+            }
+
+            const keys = Object.keys(data[0]);
+            const container = document.getElementById('results-content');
+            
+            container.innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            ${keys.map(key => `<th>${key}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(row => `
+                            <tr>
+                                ${keys.map(key => `<td>${row[key] !== null ? row[key] : 'NULL'}</td>`).join('')}
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('results-header').textContent = `Resultados (${data.length} registros)`;
+            showResults();
+        }
+
+        // Atajo de teclado: Ctrl+Enter para ejecutar
+        document.getElementById('query-input').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                executeQuery();
+            }
+        });
+
+        // Enfocar el área de texto al cargar
+        document.getElementById('query-input').focus();
+    </script>
+</body>
+</html>
