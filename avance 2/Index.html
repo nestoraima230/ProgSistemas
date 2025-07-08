@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parser DML</title>
+</head>
+
+<body>
+
+    <p>CÓDIGO DML SQL</p>
+    <textarea id="textToEval" rows="10" cols="100"></textarea>
+
+    <button onclick="analiza()">Analiza</button>
+    <button onclick="showParser()" id="bParser" style="display: none;">Parser</button>
+    <button id="clear-all-btn">Limpiar todo</button>
+
+
+    <div>
+        <!-- Tabla de resultados -->
+        <p>Resultados</p>
+        <table class="megaTable">
+            <thead>
+                <tr>
+                    <th>ESCÁNER</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="megaCell">
+                    <td> <!-- Columna de resultados del scanner -->
+                        <table id="resultsTable">
+                            <thead>
+                                <tr>
+                                    <th>No.</th>
+                                    <th>No. Línea</th>
+                                    <th>TOKEN</th>
+                                    <th>Tipo</th>
+                                    <th>Código</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Lista de resultados obtenidos -->
+                            </tbody>
+                        </table>
+
+                        <p>Errores encontrados</p>
+                        <table id="errorsTable">
+                            <thead>
+                                <tr>
+                                    <th>Renglón</th>
+                                    <th>Codigo</th>
+                                    <th>Descripcion</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+
+                        <p>Tabla de Identificadores</p>
+                        <!-- Tabla de Identificadores -->
+                        <table id="identifiersTable">
+                            <thead>
+                                <tr>
+                                    <th>Línea</th>
+                                    <th>Identificador</th>
+                                    <th>Valor</th>
+                                    <th>Código</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Lista de identificadores obtenidos -->
+                            </tbody>
+                        </table>
+
+                        <!-- Tabla de Constantes -->
+                        <P>Tabla de Constantes</P>
+                        <table id="constantsTable">
+                            <thead>
+                                <tr>
+                                    <th>Línea</th>
+                                    <th>Constante</th>
+                                    <th>Valor</th>
+                                    <th>Código</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Lista de constantes obtenidas -->
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Tabla del Parser -->
+        <p>Resultados del Parser</p>
+        <table id="parserTable" style="display: none;">
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Pila</th>
+                    <th>Tabla léxica</th>
+                    <th>X</th>
+                    <th>K</th>
+                    <th>Producción</th>
+                </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+
+        <!-- <p>Error del Parser</p> -->
+        <table id="errParserTable">
+            <thead>
+                <tr>
+                    <th>Renglón</th>
+                    <th>Codigo</th>
+                    <th>Descripcion</th>
+                </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+
+    </div>
+
+    <script src="Script.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 20px;
+            color: #333;
+        }
+
+        p {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            resize: vertical;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px 5px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background-color: white;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .megaTable {
+            margin-bottom: 30px;
+        }
+
+        .megaCell {
+            vertical-align: top;
+        }
+
+        #parserTable,
+        #errParserTable {
+            margin-top: 20px;
+        }
+
+        .error-row {
+            background-color: #ffd6d6;
+        }
+    </style>
+</body>
+
+</html>
